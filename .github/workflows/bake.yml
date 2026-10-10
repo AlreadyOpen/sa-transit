@@ -1,9 +1,10 @@
-# Bake and publish to Hugging Face (bake.py, publish.py). Manual only in the template: add a schedule in your copy, e.g.
-#   schedule:
-#     - cron: '30 19 * * *'          # 03:30 HKT daily
-# Each run commits status/last-run.json: GitHub turns schedules off after 60 days with no commits.
+# Weekly bake and publish (bake.py, publish.py), then the Kaggle mirror and the monthly vehicle archive (kaggle_archive.py).
+# Adelaide Metro republishes the static feed at service changes (feed_info.txt states its validity); weekly is enough for a map.
+# Each run commits status/last-run.json: GitHub turns schedules off after 60 days with no commits (live.yml relies on it too).
 name: bake
 on:
+  schedule:
+    - cron: '0 18 * * 1'           # Mondays 18:00 UTC (Tuesday 03:30-04:30 in Adelaide)
   workflow_dispatch:
     inputs:
       force:
@@ -27,20 +28,21 @@ jobs:
         with:
           python-version: '3.14'
           cache: pip
-      - run: pip install -r requirements.txt
-      # downloads kept between runs (restore and save are split so the cache is saved even when publish fails)
-      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9   # v6.1.0
+      - run: pip install -r requirements.txt && sudo apt-get update -q
+      # tippecanoe 2.79.0 from source (apt's 2.49 drops features; same pin and cache key as world-airports)
+      - id: tip
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830   # v4.3.0
         with:
-          path: data/cache
-          key: cache-${{ github.run_id }}
-          restore-keys: cache-
+          path: /opt/tippecanoe
+          key: tippecanoe-2.79.0-ubuntu-24.04
+      - if: steps.tip.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install -y -q libsqlite3-dev zlib1g-dev
+          git clone -q https://github.com/felt/tippecanoe /tmp/tip && git -C /tmp/tip checkout -q 68ab8dcc229f95b8b25877697d5e8d66783af503
+          make -C /tmp/tip -j"$(nproc)" PREFIX=/opt/tippecanoe && sudo make -C /tmp/tip install PREFIX=/opt/tippecanoe
+      - run: echo /opt/tippecanoe/bin >> "$GITHUB_PATH"
       - name: bake
         run: python bake.py
-      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9   # v6.1.0
-        if: always()
-        with:
-          path: data/cache
-          key: cache-${{ github.run_id }}
       - name: publish
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -52,6 +54,13 @@ jobs:
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
         run: python kaggle_mirror.py
+      # complete months of vehicle snapshots -> one Kaggle dataset each; removed from the bucket only once Kaggle lists them
+      - name: archive vehicles to Kaggle
+        continue-on-error: true
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: python kaggle_archive.py
       - name: keep-alive commit
         run: |
           git config user.name 'github-actions[bot]'

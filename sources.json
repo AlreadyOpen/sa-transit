@@ -1,3 +1,4 @@
 [
- {"name": "Example dataset (replace)", "owner": "Example Owner", "url": "https://example.org/data.csv", "licence": "https://example.org/terms", "used_by": "bake.py"}
+ {"name": "Adelaide Metro General Transit Feed (GTFS static)", "owner": "Department for Infrastructure and Transport (Adelaide Metro), Government of South Australia", "url": "https://gtfs.adelaidemetro.com.au/v1/static/latest/google_transit.zip", "licence": "https://creativecommons.org/licenses/by/4.0/", "docs": "https://data.sa.gov.au/data/dataset/4e191c1e-b971-441f-83f7-45e266c41b99", "used_by": "bake.py"},
+ {"name": "Adelaide Metro GTFS-realtime vehicle positions", "owner": "Department for Infrastructure and Transport (Adelaide Metro), Government of South Australia", "url": "https://gtfs.adelaidemetro.com.au/v1/realtime/vehicle_positions", "licence": "https://creativecommons.org/licenses/by/4.0/", "docs": "https://gtfs.adelaidemetro.com.au/", "used_by": "live.py"}
 ]

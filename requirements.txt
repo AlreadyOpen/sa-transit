@@ -1,2 +1,5 @@
+duckdb==1.4.5
 huggingface_hub==1.12.0
 kaggle==2.2.3
+gtfs-realtime-bindings==1.0.0
+protobuf==6.33.6
