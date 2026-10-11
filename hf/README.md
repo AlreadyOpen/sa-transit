@@ -15,8 +15,8 @@ tags:
 
 The Adelaide Metro General Transit Feed (buses, trains and trams in metropolitan Adelaide, plus the regional coach operators
 the same feed carries, such as Stateliner) as GeoParquet, JSON and vector tiles, rebuilt weekly by
-[AlreadyOpen/sa-transit](https://github.com/AlreadyOpen/sa-transit), with a snapshot of every vehicle's position every 15
-minutes. Every table, row and field of the source is kept.
+[AlreadyOpen/sa-transit](https://github.com/AlreadyOpen/sa-transit), with a snapshot of the GTFS-realtime feeds (vehicle
+positions, trip updates and service alerts) every 15 minutes. Every table, row and field of the source is kept.
 
 | File | Holds |
 |---|---|
@@ -29,19 +29,26 @@ minutes. Every table, row and field of the source is kept.
 | `transit.pmtiles` | Vector tiles, layers `routes` and `stops`, zooms 4 to 14; every feature is in every zoom |
 | `index.json` | Row counts, the tables, and the feed's `feed_info` (version and validity dates) |
 
-## Live vehicle positions (bucket only)
+## Live feeds (bucket only)
 
 On the [bucket](https://huggingface.co/buckets/alreadyopen/sa-transit), refreshed every 15 minutes (GitHub may start a run
-late or skip one, so the history has gaps):
+late or skip one, so the history has gaps). Three GTFS-realtime feeds, each as `<feed>`:
+
+| `<feed>` | Feed | Daily Parquet: one row per |
+|---|---|---|
+| `vehicles` | vehicle positions | vehicle per snapshot (GeoParquet, a point per vehicle) |
+| `trip_updates` | trip updates (predicted arrivals and departures) | trip per snapshot; `stop_time_updates` counts its stop predictions, which are in `entity` |
+| `alerts` | service alerts (disruptions, stop changes) | alert per snapshot |
 
 | File | Holds |
 |---|---|
-| `live/vehicles.json` | The latest GTFS-realtime vehicle positions feed decoded to JSON, every field, including the feed's own vehicle extension (`air_conditioned`, `wheelchair_accessible` under `vehicle.vehicle.tfnsw_vehicle_descriptor`) |
-| `live/vehicles.pb` | The same feed as received (protobuf) |
-| `live/vehicles-YYYY-MM-DD.parquet` | GeoParquet: every vehicle in every snapshot of that UTC day, with the main fields as columns and `entity`, the full entity as JSON |
+| `live/<feed>.json` | The latest feed decoded to JSON, every field, including the feed's own vehicle extension (`air_conditioned`, `wheelchair_accessible` as `tfnsw_vehicle_descriptor` on every vehicle descriptor) |
+| `live/<feed>.pb` | The same feed as received (protobuf) |
+| `live/<feed>-YYYY-MM-DD.parquet` | Every entity in every snapshot of that UTC day, with the main fields as columns and `entity`, the full entity as JSON |
 
 The bucket keeps the current month (plus the previous one until it is archived). **The full history is on Kaggle**, one
-dataset per month, never changed once created: `helenkwok/sa-transit-vehicles-YYYY-MM`
+dataset per feed and month, never changed once created: `helenkwok/sa-transit-vehicles-YYYY-MM`,
+`helenkwok/sa-transit-trip-updates-YYYY-MM` and `helenkwok/sa-transit-alerts-YYYY-MM`
 (e.g. https://www.kaggle.com/datasets/helenkwok/sa-transit-vehicles-2026-10).
 
 `manifest.json` lists every file's sha256, the counts and the sources of the latest bake. Coordinates are WGS 84 as

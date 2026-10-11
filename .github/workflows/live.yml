@@ -1,5 +1,5 @@
-# Adelaide Metro vehicle positions snapshot (live.py): one GTFS-realtime GET per run. On any error the run is skipped (exit 0
-# with a warning), never retried in a loop. GitHub may start a scheduled run late or drop one under load: the history has gaps then.
+# Adelaide Metro GTFS-realtime snapshot (live.py): one GET of each feed (vehicle positions, trip updates, service alerts) per
+# run. On any error that feed is skipped (exit 0 with a warning), never retried in a loop. GitHub may start a scheduled run late or drop one under load: the history has gaps then.
 name: live
 on:
   schedule:

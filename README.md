@@ -4,14 +4,15 @@ South Australia public transport from the [Adelaide Metro GTFS feed (CC BY 4.0)]
 (metro buses, trains, trams and the regional coaches in the same feed), as GeoParquet, JSON and vector tiles, published weekly
 to Hugging Face ([dataset](https://huggingface.co/datasets/alreadyopen/sa-transit),
 [bucket](https://huggingface.co/buckets/alreadyopen/sa-transit) read by browsers) and mirrored to
-[Kaggle](https://www.kaggle.com/datasets/helenkwok/sa-transit). Every vehicle's position is snapshotted every 15 minutes to the
-bucket (`live/`), and each complete month is archived on Kaggle (`helenkwok/sa-transit-vehicles-YYYY-MM`). Built from
+[Kaggle](https://www.kaggle.com/datasets/helenkwok/sa-transit). The GTFS-realtime vehicle positions, trip updates and service alerts
+are snapshotted every 15 minutes to the bucket (`live/`), and each complete month is archived on Kaggle
+(`helenkwok/sa-transit-{vehicles,trip-updates,alerts}-YYYY-MM`). Built from
 [pipeline-template](https://github.com/AlreadyOpen/pipeline-template). Every table, row and field is kept; the files are
 listed in `hf/README.md`.
 
     python3 bake.py            # data/out/: Parquet, JSON, PMTiles + index.json (needs tippecanoe 2.79)
     python3 publish.py         # gate, then Hugging Face (HF_TOKEN)
-    python3 live.py            # one vehicle snapshot to the bucket (HF_TOKEN), every 15 min in live.yml
+    python3 live.py            # one snapshot of each realtime feed to the bucket (HF_TOKEN), every 15 min in live.yml
     python3 kaggle_archive.py  # complete months of snapshots to Kaggle, then off the bucket (weekly, in bake.yml)
     python3 check.py           # data-free checks (CI)
 
