@@ -1,4 +1,4 @@
-# Weekly bake and publish (bake.py, publish.py), then the Kaggle mirror and the monthly vehicle archive (kaggle_archive.py).
+# Weekly bake and publish (bake.py, publish.py), then the Kaggle mirror and the monthly live-feed archive (kaggle_archive.py).
 # Adelaide Metro republishes the static feed at service changes (feed_info.txt states its validity); weekly is enough for a map.
 # Each run commits status/last-run.json: GitHub turns schedules off after 60 days with no commits (live.yml relies on it too).
 name: bake
@@ -54,8 +54,8 @@ jobs:
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
         run: python kaggle_mirror.py
-      # complete months of vehicle snapshots -> one Kaggle dataset each; removed from the bucket only once Kaggle lists them
-      - name: archive vehicles to Kaggle
+      # complete months of live snapshots (each feed) -> one Kaggle dataset each; removed from the bucket only once Kaggle lists them
+      - name: archive live feeds to Kaggle
         continue-on-error: true
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
